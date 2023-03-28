@@ -28,24 +28,26 @@ def fetch_answer(url, q, cleanup=True):
         os.mkdir(DOWNLOAD_DIR)
 
     try:
-        # lookup in cache first, otherwise download
-        if url in cache:
-            path = cache[url]
-        else:
-            path = download_file(url)
-
-        if cleanup:
-            os.remove(path)
-        else:
-            #  add to cache
-            cache[url] = path
-
-
         docs = Docs()
-        docs.add(path)
+        paths = []
+
+        # lookup in cache first, otherwise download
+        for each_url in url:
+            if each_url in cache:
+                path = cache[each_url]
+            else:
+                path = download_file(each_url)
+            docs.add(path)
+            paths.append(path)
+
+            if not cleanup:
+                cache[each_url] = path
+
         ans = docs.query(q)
 
-
+        if cleanup:
+            for path in paths:
+                os.remove(path)
         return ans
     except Exception as e:
         raise e
